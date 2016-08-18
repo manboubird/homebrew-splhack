@@ -14,11 +14,20 @@ PYTHON_CONFIGURE_OPTS="--enable-shared" \
     LDCXXSHARED="clang++ -bundle" \
     BLDSHARED="clang -bundle -lpython2.7" \
     pyenv install 2.7.12
+
+# confirm `libpython2.7.dylib` is included
+otool -L ~/.pyenv/versions/2.7.12/lib/python2.7/lib-dynload/_ctypes.so | grep dylib
+
 PYTHON_CONFIGURE_OPTS="--enable-shared" \
     LDSHARED="clang -bundle" \
     LDCXXSHARED="clang++ -bundle" \
     BLDSHARED="clang -bundle -lpython3.5m" \
     pyenv install 3.5.2
+
+# confirm `libpython3.5m.dylib` is included
+otool -L ~/.pyenv/versions/3.5.2/lib/python3.5/lib-dynload/_ctypes.cpython-35m-darwin.so
+
+# setup pyenv
 pyenv local --unset
 pyenv shell --unset
 pyenv global 2.7.12 3.5.2
@@ -27,8 +36,9 @@ pyenv versions
  * 2.7.12 (set by /home/XXXX/.pyenv/version)
  * 3.5.2 (set by /home/XXXX/.pyenv/version)
 
- pyenv virtualenv 2.7.12 py27
- pyenv virtualenv 3.5.2 py35
+# create virtualenv
+pyenv virtualenv 2.7.12 py27
+pyenv virtualenv 3.5.2 py35
 
 # install macvim kaoriya
 brew tap universal-ctags/universal-ctags
@@ -39,15 +49,42 @@ brew install --HEAD manboubird/splhack/cmigemo-mk
 brew install --HEAD --with-properly-linked-python2-python3 manboubird/splhack/macvim-kaoriya
 ```
 
+Usage
+```
+$ pyenv versions
+  system
+* 2.7.12 (set by /Users/xxx/.pyenv/version)
+* 3.5.2 (set by /Users/xxx/.pyenv/version)
+  py27
+  py35
+
+$ pyenv activate py35
+
+(py35) $ vim-with-compiled-with-pyenv test.py
+
+# press space at end of characters and display suggestions if pandas is installed
+import pandas.re
+
+$ deactivate
+$ pyenv activate py27
+
+(py27) $ vim-with-compiled-with-pyenv test.py
+
+# press space at end of characters and display suggestions if pandas is installed
+import pandas.re
+```
+
+## For diynamic loading without mac vim re-compilation (Experimental)
+
 Add below into `.bashrc`
 
 ```
+export PYENV_ROOT="${HOME}/.pyenv"
 export PYENV_PYTHON2_VERSION="2.7.12"
 export PYENV_PYTHON3_VERSION="3.5.2"
 ```
 
-
-Add below into `.vimrc`.
+Add below into `.vimrc`. This may not be required.
 ```
 let s:python2home = $PYENV_ROOT . '/versions/' . $PYENV_PYTHON2_VERSION
 let s:python2dll  = $PYENV_ROOT . '/versions/' . $PYENV_PYTHON2_VERSION . '/lib/libpython2.7.dylib'
@@ -66,5 +103,4 @@ if (executable(s:python2dll))
   let $PYTHONHOME = s:python2home
   execute 'python import sys'
 endif
-
 ```
